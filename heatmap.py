@@ -5,19 +5,19 @@ import os
 import re
 import sys
 
-#import geopandas as gpd
-#from shapely.geometry import Point
-#from get_table import get_data
 import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
 from rasterio.windows import from_bounds
-import pudb
 
+
+ALL_SCHEMES = sorted(plt.colormaps(), key=lambda n: n.lower())
 
 CLEAN_FLOAT_RX = re.compile(r"(?P<n>-?[0-9.]+)")
 GET_EXT_RX = re.compile(r".*\.(?P<ext>[a-z0-9_+]{1,4})$")
 
+PYPLOT_SCHEMES = "https://www.tutorialspoint.com/matplotlib/"\
+                 "matplotlib_choosing_colormaps.htm"
 
 def get_args(args):
     def clean_float(value: str) -> float:
@@ -28,15 +28,34 @@ def get_args(args):
             raise argparse.ArgumentTypeError(
                 f"Invalid float value: '{value}'")
 
+    def check_scheme(scheme: str) -> str:
+        if scheme in ALL_SCHEMES:
+            return scheme
+        else:
+            raise argparse.ArgumentTypeError(
+                f"Invalid color scheme name: '{scheme}' -check capitalization: "
+                f"{', '.join(ALL_SCHEMES)}"
+            )
+
     parser = argparse.ArgumentParser(
         description='Produce heatmap based on a GeoTIFF')
     parser.add_argument('-i', '--input', action='store', dest='geotiff',
                         help='Input GeoTIFF file path', required=True)
     parser.add_argument('-o', '--outfile', action='store', dest='outfile',
-                        help='Output base filename or filepath', required=True)
+                        help='Output filename or pathname, ending in one of'
+                             '.png, .kml or .kmz',
+                        required=True)
+    parser.add_argument('-r', '--revscheme', action='store_true',
+                        dest='revscheme', default=False,
+                        help="Reverse color scheme order")
+    parser.add_argument('-m', '--scheme', action='store', dest='scheme',
+                        default='viridis', type=check_scheme,
+                        help=("Select a color scheme from pyplot's "
+                              "list of color schemes "
+                              f"({', '.join(ALL_SCHEMES)}).  "
+                              f"See {PYPLOT_SCHEMES} for examples")
+                        )
 
-    # parser.add_argument('-x', '--ext', action='store', dest='file_type',
-    #                     default='PNG', required=True)
     parser.add_argument('lat0', type=clean_float)
     parser.add_argument('lon0', type=clean_float)
     parser.add_argument('lat1', type=clean_float)
@@ -45,8 +64,10 @@ def get_args(args):
     return parser.parse_args(args)
 
 
-def geotiff2matrix(vrt_file, outfile, min_lon, min_lat, max_lon, max_lat):
+def geotiff2matrix(vrt_file, outfile, scheme, revscheme,
+                   min_lon, min_lat, max_lon, max_lat):
 
+    # Grab info about outfile to prepare for writing
     out_basename = os.path.basename(outfile)
     out_dir = os.path.dirname(outfile)
     if out_mat := GET_EXT_RX.match(out_basename):
@@ -57,31 +78,39 @@ def geotiff2matrix(vrt_file, outfile, min_lon, min_lat, max_lon, max_lat):
 
     ds = rasterio.open(vrt_file)
     nodata_val = ds.nodata
-    print("ds.nodata", ds.nodata)
+
     window = from_bounds(min_lon, min_lat, max_lon, max_lat, ds.transform)
-    data = ds.read(1, window=window, masked=True)
-    invalid_mask = (data == nodata_val) | (data <= 0) | np.isnan(data)
+
+    data = ds.read(1, window=window).astype(np.float32)
+
+    # Check metadata's nodata, neg values (bad for log), and any existing NaNs
+    invalid_mask = (data <= 0) | np.isnan(data)
+    if nodata_val is not None:
+        invalid_mask |= (data == nodata_val)
 
     data[invalid_mask] = np.nan
-    # # data = data.filled(np.nan)
-    # # pu.db
-    # x = data[data <= 0]
-    # # data[data == -32768] = 0
-    # # data = data.filled(np.nan)
-    # data = data.filled(0)
-    # # avoid log(0)
-    # data[data <= 0] = 0.0
 
-    log_data = np.log10(data)
-    # log_data[np.isinf(log_data)] = np.nan
+    # Use np.errstate to ignore warnings about log(NaN)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        log_data = np.log10(data)
+
+    # ignore holes/transparency when calculating the color scale
+    if np.all(np.isnan(log_data)):
+        # if window is entirely empty
+        return None
 
     vmin = np.nanpercentile(log_data, 5)
     vmax = np.nanpercentile(log_data, 95)
 
-    norm = (log_data - vmin) / (vmax - vmin)
-    norm = np.clip(norm, 0, 1)
+    if vmax == vmin:
+        norm = np.zeros_like(log_data)
+    else:
+        norm = (log_data - vmin) / (vmax - vmin)
+        norm = np.clip(norm, 0, 1)
 
-    cmap = plt.get_cmap("viridis")
+    cmap = plt.get_cmap(scheme)
+    if revscheme:
+        cmap = cmap.reversed()
     rgba = cmap(norm)
 
     rgba[..., 3] = np.where(np.isnan(norm), 0, 0.5)
@@ -146,22 +175,23 @@ def geotiff2matrix(vrt_file, outfile, min_lon, min_lat, max_lon, max_lat):
 
 
 def get_heatmap(args):
-    mins = (min_lon:=min(args.lon0, args.lon1)), (min_lat:=min(args.lat0, args.lat1))
-    maxs = (max_lon:=max(args.lon0, args.lon1)), (max_lat:=max(args.lat0, args.lat1))
+    mins = ((min_lon:=min(args.lon0, args.lon1)),
+            (min_lat:=min(args.lat0, args.lat1)))
+    maxs = ((max_lon:=max(args.lon0, args.lon1)),
+            (max_lat:=max(args.lat0, args.lat1)))
     print(f"min_lon={min_lon}, min_lat={min_lat}"
           f"max_lon={max_lon}, max_lat={max_lat}")
     print(f"lon={min_lon} {max_lon}, lat={min_lat} {max_lat}")
-    m = geotiff2matrix(args.geotiff, args.outfile, *mins, *maxs)
+    m = geotiff2matrix(args.geotiff, args.outfile, args.scheme, args.revscheme,
+                       *mins, *maxs)
 
     # m = get_pop_matrix(args.geotiff, min_lon, min_lat, max_lon, max_lat)
     # upper_left = 53.557743897269724, 82.56964845543003
     # lower_right = 51.664160309935156, 87.51818652647898
     # min_lon, min_lat = 82.56964845543003, 51.664160309935156
     # max_lon, max_lat = 87.51818652647898, 53.557743897269724
-    # pu.db
 
     # d = {'geometry': [Point(*upper_left), Point(*lower_right)]}  # 'col1': ['name1', 'name2'],
-    # import pudb; pu.db
     # gdf = gpd.GeoDataFrame(d, crs="EPSG:4326")
     #
     # data = get_data(gdf, year=2026, resolution='100km')
