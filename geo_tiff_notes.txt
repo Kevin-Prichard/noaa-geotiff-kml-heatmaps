@@ -21,6 +21,7 @@ pip install scipy
 pip install pudb
 sudo apt install gdal-bin
 pip install matplotlib
+pip install pygrib
 
 Missing _gdal_array bug-
 https://stackoverflow.com/questions/75372275/importerror-cannot-import-name-gdal-array-from-osgeo
