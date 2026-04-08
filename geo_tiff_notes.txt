@@ -1,0 +1,64 @@
+pip install get_wp_global
+#pip install .
+pip install requests
+pip install numpy
+pip install osgeo
+#pip install gdal
+pip install https://github.com/OSGeo/gdal
+sudo apt install libgdal gdal-devel
+sudo apt install libgdal30 libgdal-dev
+#sudo apt install  libgdal30 libgdal-dev
+#apt list --installed|grep libgdal
+#sudo apt install libgdal-dev
+#apt list --installed|egrep -i 'libmaria|libmysql'
+sudo apt install libmysqlclient-dev
+sudo apt install libgdal-dev
+pip search libgdal
+#pip install osgeo
+pip install gdal==3.4.1
+pip install gdal[numpy]=="$(gdal-config --version).*"
+pip install scipy
+pip install pudb
+sudo apt install gdal-bin
+pip install matplotlib
+
+Missing _gdal_array bug-
+https://stackoverflow.com/questions/75372275/importerror-cannot-import-name-gdal-array-from-osgeo
+
+$ pip3 install --no-cache-dir --force-reinstall 'GDAL[numpy]==3.6.2'
+
+rus_pop_2026_CN_100m_R2025A_v1.tif.kmz
+
+Error in the document.
+• The element references an image 'heatmap.png' that could not be sanitized. This could be due to a corrupted image or an unsupported format.
+
+Xmin 27.8585282088507 31.424949317 34.991369934 38.557790551
+Ymin 43.90302917423932
+Xmax 31.424949317 34.991369934 38.557790551 42.12421116849151
+Ymax 60.646081015867836
+
+Xmin 27.8585282088507
+Ymin 43.90302917423932 48.088792135 52.274555095 56.460318055
+Xmax 42.12421116849151
+Ymax 48.088792135 52.274555095 56.460318055 60.646081015867836
+
+
+Xmin 27.8585282088507
+Ymin 43.90302917423932 47.927271881 51.951514587 55.975757294
+Xmax 42.12421116849151
+Ymax 47.927271881 51.951514587 55.975757294 60
+
+
+Xmin 27.8585282088507
+Ymin 43.90302917423932 47 50 55.975757294
+Xmax 42.12421116849151
+Ymax 47 50 55 60
+
+
+Max 450,000 km2
+Current selection area is 1,800,599 km2
+
+1800599 / 450000
+
+31.424949317
+42.12421116849151
