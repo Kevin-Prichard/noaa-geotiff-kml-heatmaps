@@ -8,6 +8,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
+from rasterio.enums import Resampling
 from rasterio.windows import from_bounds
 
 
@@ -55,6 +56,14 @@ def get_args(args):
                               f"({', '.join(ALL_SCHEMES)}).  "
                               f"See {PYPLOT_SCHEMES} for examples")
                         )
+    parser.add_argument('-s', '--scale', type=float, action='store',
+                        dest='scale', default=1.0,
+                        help="Scale incoming tiff, with this as denominator",
+                        )
+    parser.add_argument('-c', '--opacity', type=float, action='store',
+                        dest='opacity', default=0.6,
+                        help="Opacity",
+                        )
 
     parser.add_argument('lat0', type=clean_float)
     parser.add_argument('lon0', type=clean_float)
@@ -64,7 +73,7 @@ def get_args(args):
     return parser.parse_args(args)
 
 
-def geotiff2matrix(vrt_file, outfile, scheme, revscheme,
+def geotiff2matrix(vrt_file, outfile, scheme, revscheme, scale, opacity,
                    min_lon, min_lat, max_lon, max_lat):
 
     # Grab info about outfile to prepare for writing
@@ -81,7 +90,12 @@ def geotiff2matrix(vrt_file, outfile, scheme, revscheme,
 
     window = from_bounds(min_lon, min_lat, max_lon, max_lat, ds.transform)
 
-    data = ds.read(1, window=window).astype(np.float32)
+    # Some GeoTIFFs are massive! We can scale them
+    data = ds.read(1, window=window,
+                   out_shape=(int(window.height / scale),
+                              int(window.width / scale)),
+                   resampling=Resampling.average
+    ).astype(np.float32)
 
     # Check metadata's nodata, neg values (bad for log), and any existing NaNs
     invalid_mask = (data <= 0) | np.isnan(data)
@@ -113,7 +127,7 @@ def geotiff2matrix(vrt_file, outfile, scheme, revscheme,
         cmap = cmap.reversed()
     rgba = cmap(norm)
 
-    rgba[..., 3] = np.where(np.isnan(norm), 0, 0.5)
+    rgba[..., 3] = np.where(np.isnan(norm), 0, opacity)
 
     if out_ext == 'kml' or out_ext == 'kmz':
         png_outfile = f"{out_basename}.png"
@@ -170,7 +184,6 @@ def geotiff2matrix(vrt_file, outfile, scheme, revscheme,
             z.write(kml_outpath, "doc.kml")
             z.write(png_outpath, "heatmap.png")
 
-    print(data.shape)
     return data
 
 
@@ -183,18 +196,8 @@ def get_heatmap(args):
           f"max_lon={max_lon}, max_lat={max_lat}")
     print(f"lon={min_lon} {max_lon}, lat={min_lat} {max_lat}")
     m = geotiff2matrix(args.geotiff, args.outfile, args.scheme, args.revscheme,
+                       args.scale, args.opacity,
                        *mins, *maxs)
-
-    # m = get_pop_matrix(args.geotiff, min_lon, min_lat, max_lon, max_lat)
-    # upper_left = 53.557743897269724, 82.56964845543003
-    # lower_right = 51.664160309935156, 87.51818652647898
-    # min_lon, min_lat = 82.56964845543003, 51.664160309935156
-    # max_lon, max_lat = 87.51818652647898, 53.557743897269724
-
-    # d = {'geometry': [Point(*upper_left), Point(*lower_right)]}  # 'col1': ['name1', 'name2'],
-    # gdf = gpd.GeoDataFrame(d, crs="EPSG:4326")
-    #
-    # data = get_data(gdf, year=2026, resolution='100km')
 
 
 if __name__ == '__main__':
@@ -203,5 +206,5 @@ if __name__ == '__main__':
     args = get_args(sys.argv[1:])
     get_heatmap(args)
 
-# Near St Pete's    60.646081015867836, 27.8585282088507
+# Near St Pete's   60.646081015867836, 27.8585282088507
 # Right of Crimean 43.90302917423932, 42.12421116849151
