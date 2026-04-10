@@ -1,0 +1,273 @@
+Help on class GeoSeries in module geopandas.geoseries:
+
+class GeoSeries(geopandas.base.GeoPandasBase, pandas.Series)
+ |  GeoSeries(data=None, index=None, crs: 'Any | None' = None, **kwargs)
+ |  
+ |  A Series object designed to store shapely geometry objects.
+ |  
+ |  Parameters
+ |  ----------
+ |  data : array-like, dict, scalar value
+ |      The geometries to store in the GeoSeries.
+ |  index : array-like or Index
+ |      The index for the GeoSeries.
+ |  crs : value (optional)
+ |      Coordinate Reference System of the geometry objects. Can be anything accepted by
+ |      :meth:`pyproj.CRS.from_user_input() <pyproj.crs.CRS.from_user_input>`,
+ |      such as an authority string (eg "EPSG:4326") or a WKT string.
+ |  
+ |  kwargs
+ |      Additional arguments passed to the Series constructor,
+ |       e.g. ``name``.
+ |  
+ |  Examples
+ |  --------
+ |  >>> from shapely.geometry import Point
+ |  >>> s = geopandas.GeoSeries([Point(1, 1), Point(2, 2), Point(3, 3)])
+ |  >>> s
+ |  0    POINT (1 1)
+ |  1    POINT (2 2)
+ |  2    POINT (3 3)
+ |  dtype: geometry
+ |  
+ |  >>> s = geopandas.GeoSeries(
+ |  ...     [Point(1, 1), Point(2, 2), Point(3, 3)], crs="EPSG:3857"
+ |  ... )
+ |  >>> s.crs  # doctest: +SKIP
+ |  <Projected CRS: EPSG:3857>
+ |  Name: WGS 84 / Pseudo-Mercator
+ |  Axis Info [cartesian]:
+ |  - X[east]: Easting (metre)
+ |  - Y[north]: Northing (metre)
+ |  Area of Use:
+ |  - name: World - 85°S to 85°N
+ |  - bounds: (-180.0, -85.06, 180.0, 85.06)
+ |  Coordinate Operation:
+ |  - name: Popular Visualisation Pseudo-Mercator
+ |  - method: Popular Visualisation Pseudo Mercator
+ |  Datum: World Geodetic System 1984
+ |  - Ellipsoid: WGS 84
+ |  - Prime Meridian: Greenwich
+ |  
+ |  >>> s = geopandas.GeoSeries(
+ |  ...    [Point(1, 1), Point(2, 2), Point(3, 3)], index=["a", "b", "c"], crs=4326
+ |  ... )
+ |  >>> s
+ |  a    POINT (1 1)
+ |  b    POINT (2 2)
+ |  c    POINT (3 3)
+ |  dtype: geometry
+ |  
+ |  >>> s.crs
+ |  <Geographic 2D CRS: EPSG:4326>
+ |  Name: WGS 84
+ |  Axis Info [ellipsoidal]:
+ |  - Lat[north]: Geodetic latitude (degree)
+ |  - Lon[east]: Geodetic longitude (degree)
+ |  Area of Use:
+ |  - name: World.
+ |  - bounds: (-180.0, -90.0, 180.0, 90.0)
+ |  Datum: World Geodetic System 1984 ensemble
+ |  - Ellipsoid: WGS 84
+ |  - Prime Meridian: Greenwich
+ |  
+ |  See Also
+ |  --------
+ |  GeoDataFrame
+ |  pandas.Series
+ |  
+ |  Method resolution order:
+ |      GeoSeries
+ |      geopandas.base.GeoPandasBase
+ |      pandas.Series
+ |      pandas.core.base.IndexOpsMixin
+ |      pandas.core.arraylike.OpsMixin
+ |      pandas.core.generic.NDFrame
+ |      pandas.core.base.PandasObject
+ |      pandas.core.accessor.DirNamesMixin
+ |      pandas.core.indexing.IndexingMixin
+ |      builtins.object
+ |  
+ |  Methods defined here:
+ |  
+ |  __contains__(self, other) -> 'bool'
+ |      Allow tests of the form "geom in s".
+ |      
+ |      Tests whether a GeoSeries contains a geometry.
+ |      
+ |      Note: This is not the same as the geometric method "contains".
+ |  
+ |  __getitem__(self, key)
+ |  
+ |  __init__(self, data=None, index=None, crs: 'Any | None' = None, **kwargs)
+ |      Initialize self.  See help(type(self)) for accurate signature.
+ |  
+ |  apply(self, func, convert_dtype: 'bool | None' = None, args=(), **kwargs)
+ |      One-dimensional ndarray with axis labels (including time series).
+ |      
+ |      Labels need not be unique but must be a hashable type. The object
+ |      supports both integer- and label-based indexing and provides a host of
+ |      methods for performing operations involving the index. Statistical
+ |      methods from ndarray have been overridden to automatically exclude
+ |      missing data (currently represented as NaN).
+ |      
+ |      Operations between Series (+, -, /, \*, \*\*) align values based on their
+ |      associated index values-- they need not be the same length. The result
+ |      index will be the sorted union of the two indexes.
+ |      
+ |      Parameters
+ |      ----------
+ |      data : array-like, Iterable, dict, or scalar value
+ |          Contains data stored in Series. If data is a dict, argument order is
+ |          maintained. Unordered sets are not supported.
+ |      index : array-like or Index (1d)
+ |          Values must be hashable and have the same length as `data`.
+ |          Non-unique index values are allowed. Will default to
+ |          RangeIndex (0, 1, 2, ..., n) if not provided. If data is dict-like
+ |          and index is None, then the keys in the data are used as the index. If the
+ |          index is not None, the resulting Series is reindexed with the index values.
+ |      dtype : str, numpy.dtype, or ExtensionDtype, optional
+ |          Data type for the output Series. If not specified, this will be
+ |          inferred from `data`.
+ |          See the :ref:`user guide <basics.dtypes>` for more usages.
+ |      name : Hashable, default None
+ |          The name to give to the Series.
+ |      copy : bool, default None
+ |          Whether to copy input data, only relevant for array, Series, and Index
+ |          inputs (for other input, e.g. a list, a new array is created anyway).
+ |          Defaults to True for array input and False for Index/Series.
+ |          Even when False for Index/Series, a shallow copy of the data is made.
+ |          Set to False to avoid copying array input at your own risk (if you
+ |          know the input data won't be modified elsewhere).
+ |          Set to True to force copying Series/Index input up front.
+ |      
+ |      See Also
+ |      --------
+ |      DataFrame : Two-dimensional, size-mutable, potentially heterogeneous tabular data.
+ |      Index : Immutable sequence used for indexing and alignment.
+ |      
+ |      Notes
+ |      -----
+ |      Please reference the :ref:`User Guide <basics.series>` for more information.
+ |      
+ |      Examples
+ |      --------
+ |      Constructing Series from a dictionary with an Index specified
+ |      
+ |      >>> d = {"a": 1, "b": 2, "c": 3}
+ |      >>> ser = pd.Series(data=d, index=["a", "b", "c"])
+ |      >>> ser
+ |      a   1
+ |      b   2
+ |      c   3
+ |      dtype: int64
+ |      The keys of the dictionary match with the Index values, hence the Index
+ |      values have no effect.
+ |      
+ |      >>> d = {"a": 1, "b": 2, "c": 3}
+ |      >>> ser = pd.Series(data=d, index=["x", "y", "z"])
+ |      >>> ser
+ |      x   NaN
+ |      y   NaN
+ |      z   NaN
+ |      dtype: float64
+ |      
+ |      Note that the Index is first built with the keys from the dictionary.
+ |      After this the Series is reindexed with the given Index values, hence we
+ |      get all NaN as a result.
+ |      
+ |      Constructing Series from a list with `copy=False`.
+ |      
+ |      >>> r = [1, 2]
+ |      >>> ser = pd.Series(r, copy=False)
+ |      >>> ser.iloc[0] = 999
+ |      >>> r
+ |      [1, 2]
+ |      >>> ser
+ |      0    999
+ |      1      2
+ |      dtype: int64
+ |      
+ |      Due to input data type the Series has a `copy` of
+ |      the original data even though `copy=False`, so
+ |      the data is unchanged.
+ |      
+ |      Constructing Series from a 1d ndarray with `copy=False`.
+ |      
+ |      >>> r = np.array([1, 2])
+ |      >>> ser = pd.Series(r, copy=False)
+ |      >>> ser.iloc[0] = 999
+ |      >>> r
+ |      array([999,   2])
+ |      >>> ser
+ |      0    999
+ |      1      2
+ |      dtype: int64
+ |      
+ |      Due to input data type the Series has a `view` on
+ |      the original data, so
+ |      the data is changed as well.
+ |  
+ |  clip(self, mask, keep_geom_type: 'bool' = False, sort=False) -> 'GeoSeries'
+ |      Clip points, lines, or polygon geometries to the mask extent.
+ |      
+ |      Both layers must be in the same Coordinate Reference System (CRS).
+ |      The GeoSeries will be clipped to the full extent of the `mask` object.
+ |      
+ |      If there are multiple polygons in mask, data from the GeoSeries will be
+ |      clipped to the total boundary of all polygons in mask.
+
+ |      Parameters
+ |      ----------
+ |      mask : GeoDataFrame, GeoSeries, (Multi)Polygon, list-like
+ |          Polygon vector layer used to clip `gdf`.
+ |          The mask's geometry is dissolved into one geometric feature
+ |          and intersected with GeoSeries.
+ |          If the mask is list-like with four elements ``(minx, miny, maxx, maxy)``,
+ |          ``clip`` will use a faster rectangle clipping
+ |          (:meth:`~GeoSeries.clip_by_rect`), possibly leading to slightly different
+ |          results.
+ |      keep_geom_type : boolean, default False
+ |          If True, return only geometries of original type in case of intersection
+ |          resulting in multiple geometry types or GeometryCollections.
+ |          If False, return all resulting geometries (potentially mixed-types).
+ |      sort : boolean, default False
+ |          If True, the order of rows in the clipped GeoSeries will be preserved
+ |          at small performance cost.
+ |          If False the order of rows in the clipped GeoSeries will be random.
+ |      
+ |      Returns
+ |      -------
+ |      GeoSeries
+ |          Vector data (points, lines, polygons) from `gdf` clipped to
+ |          polygon boundary from mask.
+ |      
+ |      See Also
+ |      --------
+ |      clip : top-level function for clip
+ |      
+ |      Examples
+ |      --------
+ |      Clip points (grocery stores) with polygons (the Near West Side community):
+ |      
+ |      >>> import geodatasets
+ |      >>> chicago = geopandas.read_file(
+ |      ...     geodatasets.get_path("geoda.chicago_health")
+ |      ... )
+ |      >>> near_west_side = chicago[chicago["community"] == "NEAR WEST SIDE"]
+ |      >>> groceries = geopandas.read_file(
+ |      ...     geodatasets.get_path("geoda.groceries")
+ |      ... ).to_crs(chicago.crs)
+ |      >>> groceries.shape
+ |      (148, 8)
+ |      
+ |      >>> nws_groceries = groceries.geometry.clip(near_west_side)
+ |      >>> nws_groceries.shape
+ |      (7,)
+ |  
+ |  estimate_utm_crs(self, datum_name: 'str' = 'WGS 84')
+ |      Return the estimated UTM CRS based on the bounds of the dataset.
+ |      
+ |      .. versionadded:: 0.9
+ |      
+ |      Parameters

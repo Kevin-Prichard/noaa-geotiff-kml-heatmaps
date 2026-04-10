@@ -23,6 +23,22 @@ sudo apt install gdal-bin
 pip install matplotlib
 pip install pygrib
 
+For OSM PBFs-
+PyrOSM depends on pyrobuf, which has an installation bug, so-
+git clone https://github.com/appnexus/pyrobuf.git
+pip install -U pip setuptools wheel
+pip install markupsafe
+python setup.py build install
+
+==>> PyrOSM reqs
+python3.11 -m venv venv311
+. venv311/bin/activate
+pip install setuptools wheel
+pip install pyrosm
+pip install shapely
+pip install osmnx
+<<== END
+
 Missing _gdal_array bug-
 https://stackoverflow.com/questions/75372275/importerror-cannot-import-name-gdal-array-from-osgeo
 
