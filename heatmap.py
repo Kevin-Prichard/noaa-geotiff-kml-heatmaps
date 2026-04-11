@@ -64,6 +64,9 @@ def get_args(args):
                         dest='opacity', default=0.6,
                         help="Opacity",
                         )
+    parser.add_argument('-t', '--title', type=str, action='store',
+                        dest='title', required=True,
+                        help='Name your KML/KMZ, so that it makes sense to viewers')
 
     parser.add_argument('lat0', type=clean_float)
     parser.add_argument('lon0', type=clean_float)
@@ -205,6 +208,3 @@ if __name__ == '__main__':
     # pu.db
     args = get_args(sys.argv[1:])
     get_heatmap(args)
-
-# Near St Pete's   60.646081015867836, 27.8585282088507
-# Right of Crimean 43.90302917423932, 42.12421116849151
