@@ -1,4 +1,13 @@
 pygrib
 gdal
 xarray
+pydeck
 pytest
+rasterio
+psutil
+pyproj
+geopandas
+shapely
+numpy
+networkx
+joblib
