@@ -4,3 +4,12 @@ pop
 sol
 top
 *~
+#*
+.#*
+aoi/**
+KML/**
+der/**
+noi/opennoisemap.zip
+venv311-PyrOSM/**
+utils/pyrobuf/**
+venv311-route/**

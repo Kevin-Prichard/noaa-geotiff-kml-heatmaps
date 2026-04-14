@@ -41,7 +41,9 @@ if TYPE_CHECKING:
     from src.uav_spec import UAVSpec
     from src.uav_state import UAVState
 
+logging.getLogger("src.cost_model").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 # ── Canonical layer name keys ──────────────────────────────────────────────────
 # Use these constants as keys when constructing LayerStore.load({...}) so that
@@ -155,6 +157,8 @@ class BaseCostModel(CostModel):
     Subclasses only need to implement ``node_cost`` to produce a fully functional
     cost model with physically correct energy costs.
     """
+
+    _did_dubins_warning = False
 
     def __init__(
         self,
@@ -299,10 +303,12 @@ class BaseCostModel(CostModel):
                 logger.warning("_dubins_energy: dubins path failed (%s); using straight-line.", exc)
                 arc_m = BaseCostModel._great_circle_m(from_fp.point, to_fp.point)
         else:
-            logger.warning(
-                "_dubins_energy: 'dubins' package not installed; "
-                "using straight-line distance (add dubins to requirements.txt)"
-            )
+            if not BaseCostModel._did_dubins_warning:
+                logger.warning(
+                    "_dubins_energy: 'dubins' package not installed; "
+                    "using straight-line distance (add dubins to requirements.txt)"
+                )
+                BaseCostModel._did_dubins_warning = True
             arc_m = BaseCostModel._great_circle_m(from_fp.point, to_fp.point)
 
         wind = uav_state.effective_wind_component_mps()

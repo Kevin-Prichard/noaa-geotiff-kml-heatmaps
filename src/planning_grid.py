@@ -170,10 +170,15 @@ class PlanningGrid:
         n_requested  = n_cols * n_rows
 
         if n_requested > max_grid_nodes:
-            # Solve: ceil(w/r) * ceil(h/r) ≤ max_grid_nodes  →  r ≥ √(w·h / max)
+            # Solve: (ceil(w/r)+1)*(ceil(h/r)+1) ≤ max_grid_nodes
+            # Start with the √ lower-bound, then nudge up until we're within limits.
             actual_res = math.sqrt(width_m * height_m / max_grid_nodes) * 1.05
             n_cols     = max(2, math.ceil(width_m  / actual_res) + 1)
             n_rows     = max(2, math.ceil(height_m / actual_res) + 1)
+            while n_cols * n_rows > max_grid_nodes:
+                actual_res *= 1.1
+                n_cols = max(2, math.ceil(width_m  / actual_res) + 1)
+                n_rows = max(2, math.ceil(height_m / actual_res) + 1)
             logger.warning(
                 "PlanningGrid.build: %.1f m resolution → %d nodes > max %d; "
                 "coarsened to %.1f m → %d nodes (%d cols × %d rows)",

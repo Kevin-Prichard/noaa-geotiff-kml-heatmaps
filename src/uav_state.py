@@ -19,10 +19,10 @@ from typing import TYPE_CHECKING
 import pyproj
 from shapely.geometry import Point
 
-from flight_point import FlightPoint
+from src.flight_point import FlightPoint
 
 if TYPE_CHECKING:
-    from uav_spec import UAVSpec
+    from src.uav_spec import UAVSpec
 
 
 @dataclass

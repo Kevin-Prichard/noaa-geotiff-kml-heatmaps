@@ -11,3 +11,6 @@ shapely
 numpy
 networkx
 joblib
+scipy
+matplotlib
+dubins
